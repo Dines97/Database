@@ -1,0 +1,66 @@
+- name: main
+  hosts: all
+  become: true
+
+  tasks:
+
+  - name: Install dependencies
+    apt:
+      name:
+        - apt-transport-https
+        - ca-certificates
+        - curl
+        - gnupg
+        - lsb-release
+      update_cache: yes
+      state: present
+
+  - name: Add Docker GPG key
+    apt_key:
+      url: https://download.docker.com/linux/ubuntu/gpg
+
+  - name: Add Docker repository
+    apt_repository:
+      repo: deb [arch=amd64] https://download.docker.com/linux/ubuntu focal stable
+      state: present
+
+  - name: Update cache and install docker
+    apt:
+      name:
+        - docker-ce
+        - docker-ce-cli
+        - containerd.io
+      update_cache: yes
+      state: present
+
+  - name: Install pip
+    apt:
+      name: python3-pip
+      update_cache: yes
+      state: present
+
+  - name: Install Docker pip package
+    pip:
+      name: docker
+
+  - name: Install Docker compose pip package
+    pip:
+      name: docker-compose
+
+  - name: Git checkout
+    git:
+      repo: https://github.com/Dines97/Database.git
+      dest: /app
+
+  - name: Copy config file
+    copy:
+      src: ./config.cfg
+      dest: /app/config.cfg
+
+  - name: Build and start services
+    docker_compose:
+      project_src: /app
+      state: present
+      build: yes
+
+
